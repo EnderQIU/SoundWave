@@ -5,26 +5,25 @@ const block_move_range = 70;
 const block_scale = 0.02;
 const ripple_speed = 0.24;
 
-let show_ripples = false;
-let show_info = false;
+var show_ripples = false;
+var show_info = false;
 
-let mouse_speed;
-let fps, avgFps = 0;
-let prevFrame = 0;
-let prevTime = 0;
-let fpsInterval = 1000;
-let round = 20;
+var mouse_speed;
+var fps, avgFps = 0;
+var prevFrame = 0;
+var prevTime = 0;
+var fpsInterval = 1000;
 
 var mic;
 /**
  * @type {Block[][]}
  */
-let blocks;
+var blocks;
 
 /**
  * @type {Ripple[]}
  */
-let ripples = [];
+var ripples = [];
 
 function setup() {
     createCanvas(900, 900);
@@ -33,8 +32,8 @@ function setup() {
     rectMode(CENTER);
     noSmooth();
 
-    let left_padding = Math.round(width % block_size) / 2;
-    let top_padding = Math.round(height % block_size) / 2;
+    var left_padding = Math.round(width % block_size) / 2;
+    var top_padding = Math.round(height % block_size) / 2;
 
     blocks = Array.from({ length: Math.floor(height / block_size) }, (v, y) =>
         Array.from({ length: Math.floor(width / block_size) }, (v, x) =>
@@ -50,20 +49,16 @@ function setup() {
 }
 
 function draw() {
-    if (round % 2 == 0){
-        // 读取音量
-        var vol = mic.getLevel();
-        var soundLevel = vol * 10;
-        for (var i = soundLevel; i >= 0; i--) {  // 决定创造多少个圈
-            // Ripple(x, y, spread_speed)
-            var x = random(-width/soundLevel, width/soundLevel);
-            var y = random(-height/soundLevel, height/soundLevel);
-            console.log("draw");
-            ripples.push(new Ripple(x, y, soundLevel));
-        }
-        // 结束读取音量
+    var vol = mic.getLevel();
+    var soundLevel = vol * 15;
+    // 读取音量
+    for (var i = soundLevel % 5; i >= 0; i--) {  // 决定创造多少个圈
+        // Ripple(x, y, spread_speed)
+        var x = random(-width, width);
+        var y = random(-height, height);
+        ripples.push(new Ripple(x, y, vol));
     }
-    round++;
+    // 结束读取音量
     if (keyIsDown(32)) {
         if (random() < pow(fps / 60, 3)) {
             ripples.push(new Ripple(random(width), random(height), 0.4));
@@ -110,11 +105,13 @@ function draw() {
     if (show_info) {
         rectMode(CORNER);
         fill(20, 200);
-        rect(0, 0, 120, 64);
+        rect(0, 0, 260, 110);
         fill(220);
         textFont('monospace', 16);
         text('Ripples: ' + ripples.length, 10, 24);
         text('FPS: ' + avgFps, 10, 48);
+        text('Vol: ' + vol, 10, 72);
+        text('SL: ' + soundLevel, 10, 96)
     }
 }
 
@@ -166,7 +163,7 @@ class Block {
             if (!ripple.dists[this.id]) {
                 ripple.dists[this.id] = dist(this.pos.x, this.pos.y, ripple.pos.x, ripple.pos.y);
             };
-            let distance = ripple.dists[this.id] - ripple.currRadius;
+            var distance = ripple.dists[this.id] - ripple.currRadius;
             if (distance < 0 && distance > -block_move_range * 2) {
                 if (!ripple.angles[this.id]) {
                     ripple.angles[this.id] = p5.Vector.sub(this.pos, ripple.pos).heading();
